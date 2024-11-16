@@ -8,12 +8,12 @@
 #include <list>
 #include <iostream>
 
-template<typename std::size_t BlockSize>
+template<typename T>
 class BlockAllocator{
     private:
         struct Block{
             constexpr Block() = default;
-            std::byte data_[BlockSize]{};
+            alignas (T) std::byte data_[sizeof(T)]{};
             bool is_free_ {true};
         };
     public:
@@ -24,16 +24,13 @@ class BlockAllocator{
     }
 
     constexpr std::size_t get_max_storage() const {
-        return num_blocks_*BlockSize;
+        return num_blocks_*sizeof(T);
     }
 
-    template<typename T>
     constexpr T* allocate(T& val) {
         return allocate(std::forward<T>(val));
     }
-    template<typename T>
     constexpr T* allocate(T&& val) {
-        assert(sizeof(T) <= BlockSize);
         auto* block = find_free_block();
         if(!block) {
             std::cout << "Failed to find free block\n";
@@ -43,7 +40,6 @@ class BlockAllocator{
         return reinterpret_cast<T*>(block->data_);
     }
 
-    template<typename T>
     constexpr void deallocate(T* ptr){
         if(!ptr){
             return;
