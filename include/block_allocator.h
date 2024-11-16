@@ -61,6 +61,10 @@ class BlockAllocator{
         });
         if(block != list_.end()) {
             (*block)->is_free_ = true;
+            auto* ptr = reinterpret_cast<T*>((*block)->data_);
+            if(ptr){
+                ptr->~T();
+            }
         }
     }
 
