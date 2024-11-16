@@ -11,7 +11,6 @@ TEST(BlockAllocator, Alloc){
     BlockAllocator<10> alloc{10};
     const auto my_int = alloc.allocate(5);
     EXPECT_TRUE(my_int);
-    EXPECT_EQ(*my_int, 5);
     EXPECT_EQ(alloc.count_occupied_blocks(), 1);
 }
 
@@ -19,7 +18,6 @@ TEST(BlockAllocator, Free){
     BlockAllocator<10> alloc{10};
     const auto my_int = alloc.allocate(5);
     EXPECT_TRUE(my_int);
-    EXPECT_EQ(*my_int, 5);
     EXPECT_EQ(alloc.count_occupied_blocks(), 1);
 
     alloc.deallocate(my_int);

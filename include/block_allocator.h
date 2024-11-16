@@ -40,8 +40,7 @@ class BlockAllocator{
             return nullptr;
         }
         block->is_free_ = false;
-        auto* ptr = new(block->data_) T{val};
-        return reinterpret_cast<T*>(ptr);
+        return reinterpret_cast<T*>(block->data_);
     }
 
     template<typename T>
@@ -62,9 +61,6 @@ class BlockAllocator{
         if(block != list_.end()) {
             (*block)->is_free_ = true;
             auto* ptr = reinterpret_cast<T*>((*block)->data_);
-            if(ptr){
-                ptr->~T();
-            }
         }
     }
 
