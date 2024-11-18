@@ -75,13 +75,23 @@ public:
       return;
     }
     Block *block = reinterpret_cast<Block *>(ptr) - 1;
+    if (!block) {
+      return;
+    }
     block->is_free_ = true;
     Block *current = available_memory;
     block->next = current;
     current->prev = block;
-    available_memory = block;
 
-    // TODO: Coalesce blocks.
+    if (block->next) {
+      block->size_ += block->next->size_;
+      block->next = block->next->next;
+      if (block->next) {
+        block->next->prev = block;
+      }
+    }
+
+    available_memory = block;
   }
 
 private:

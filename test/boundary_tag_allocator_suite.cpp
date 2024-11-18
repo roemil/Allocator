@@ -1,6 +1,7 @@
 #include "boundary_tag_allocator.h"
 
 #include <gtest/gtest.h>
+#include <vector>
 
 TEST(BlockAllocator, Constructor) {
   constexpr std::size_t size = 1024;
@@ -28,12 +29,19 @@ TEST(BlockAllocator, Free) {
   EXPECT_EQ(alloc.count_occupied_memory(), 0);
 }
 
-// TEST(BlockAllocator, FillAlloc){
-//     constexpr std::size_t size = 10;
-//     BlockAllocator<int> alloc{size};
-//     for(int i = 0; i < size; ++i){
-//         const auto my_int = alloc.allocate(i);
-//         EXPECT_TRUE(my_int);
-//     }
-//     EXPECT_EQ(alloc.count_occupied_blocks(), size);
-// }
+TEST(BlockAllocator, AllocDeallocMany) {
+  constexpr std::size_t size = 1024;
+  BoundaryTagAllocator<int> alloc{size};
+  std::vector<int *> ptr_vec{};
+  for (int i = 0; i < 10; ++i) {
+    const auto my_int = alloc.allocate(sizeof(int));
+    EXPECT_TRUE(my_int);
+    ptr_vec.push_back(my_int);
+  }
+  EXPECT_EQ(alloc.count_occupied_memory(), 48 * 10);
+
+  for (const auto ptr : ptr_vec) {
+    alloc.deallocate(ptr);
+  }
+  EXPECT_EQ(alloc.count_occupied_memory(), 0);
+}
