@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <exception>
 #include <iostream>
 #include <memory>
 
@@ -26,7 +27,13 @@ public:
 
   constexpr std::size_t max_size() const { return total_size_; }
   constexpr std::size_t count_occupied_memory() const {
-    return total_size_ - available_memory->size_;
+    std::size_t free_memory = 0;
+    Block *current = available_memory;
+    while (current) {
+      free_memory += current->size_;
+      current = current->next;
+    }
+    return total_size_ - free_memory;
   }
 
   constexpr T *allocate(std::size_t n) {
@@ -39,9 +46,6 @@ public:
     }
 
     std::size_t aligned_size = align_size<T, Block>(n + sizeof(Block));
-    std::cout << "aligned size " << aligned_size << "\n";
-    std::cout << "Align of T " << alignof(T) << "\n";
-    std::cout << "Align of Block " << alignof(Block) << "\n";
 
     Block *current = available_memory;
     while (current) {
@@ -52,23 +56,38 @@ public:
               reinterpret_cast<Block *>(reinterpret_cast<Block *>(
                   reinterpret_cast<std::byte *>(available_memory) +
                   aligned_size));
-          current->next = new_block;
-          new_block->prev = current;
+          new_block->next = current->next;
           new_block->is_free_ = true;
           new_block->size_ = current->size_ - aligned_size;
           available_memory = new_block;
+          current->size_ = aligned_size;
         }
         current->is_free_ = false;
-        return reinterpret_cast<T *>(current);
+        return reinterpret_cast<T *>(current + 1);
       }
       current = current->next;
     }
     return nullptr;
   }
 
+  constexpr void deallocate(T *ptr) {
+    if (!ptr) {
+      return;
+    }
+    Block *block = reinterpret_cast<Block *>(ptr) - 1;
+    block->is_free_ = true;
+    Block *current = available_memory;
+    block->next = current;
+    current->prev = block;
+    available_memory = block;
+
+    // TODO: Coalesce blocks.
+  }
+
 private:
   template <typename U, typename V> static size_t align_size(size_t size) {
-    return (sizeof(U) + sizeof(V) - 1) & ~(sizeof(V) - 1);
+    constexpr size_t alignment = alignof(std::max_align_t);
+    return (size + alignment - 1) & ~(alignment - 1);
   }
   std::size_t total_size_{};
   std::unique_ptr<std::byte[]> ptr_ = nullptr;
