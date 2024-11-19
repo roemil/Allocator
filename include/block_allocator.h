@@ -19,7 +19,7 @@ private:
 
 public:
   constexpr explicit BlockAllocator(std::size_t num_blocks)
-      : num_blocks_(num_blocks), offset_(0) {
+      : num_blocks_(num_blocks) {
     for (int i = 0; i < num_blocks_; ++i) {
       list_.emplace_back(std::make_unique<Block>());
     }
@@ -83,6 +83,5 @@ private:
 
   std::size_t num_blocks_{};
   std::list<std::unique_ptr<Block>> list_{};
-  std::size_t offset_{};
 };
 } // namespace Allocator
