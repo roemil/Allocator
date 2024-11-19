@@ -33,12 +33,11 @@ target_link_libraries(
 )
 
 
-#add_compile_options(-fsanitize=address,undefined)
-#add_link_options(-fsanitize=address,undefined)
-target_compile_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
-target_link_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
-target_compile_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
-target_link_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
+
+ target_compile_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
+ target_link_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
+ target_compile_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
+ target_link_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
 
 include(GoogleTest)
 gtest_discover_tests(block_allocator_suite)

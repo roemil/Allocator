@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 template <typename T> class BoundaryTagAllocator {
 private:
@@ -16,7 +17,7 @@ private:
   };
 
 public:
-  BoundaryTagAllocator() = default;
+  constexpr BoundaryTagAllocator() = default;
   constexpr explicit BoundaryTagAllocator(std::size_t size)
       : total_size_(size) {
     ptr_ = std::make_unique<std::byte[]>(size);
@@ -70,6 +71,10 @@ public:
     return nullptr;
   }
 
+  template <typename... ArgsT> constexpr void construct(T *p, ArgsT &&...args) {
+    std::construct_at(p, std::forward<ArgsT>(args)...);
+  }
+
   constexpr void deallocate(T *ptr) {
     if (!ptr) {
       return;
@@ -92,6 +97,13 @@ public:
     }
 
     available_memory = block;
+  }
+
+  constexpr void destroy(T *p) {
+    if (!p) {
+      return;
+    }
+    p->~T();
   }
 
 private:
