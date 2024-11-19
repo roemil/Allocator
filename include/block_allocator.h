@@ -6,7 +6,8 @@
 #include <iostream>
 #include <list>
 #include <memory>
-#include <new>
+
+namespace Allocator {
 
 template <typename T> class BlockAllocator {
 private:
@@ -43,19 +44,19 @@ public:
     if (!ptr) {
       return;
     }
-    auto block = std::find_if(list_.begin(), list_.end(), [ptr](auto &block) {
-      if (block) {
-        auto *block_ptr = reinterpret_cast<T *>(block->data_);
-        if (!block_ptr) {
+    auto block_it =
+        std::find_if(list_.begin(), list_.end(), [ptr](auto &block) {
+          if (block) {
+            auto *block_ptr = reinterpret_cast<T *>(block->data_);
+            if (!block_ptr) {
+              return false;
+            }
+            return block_ptr == ptr;
+          }
           return false;
-        }
-        return block_ptr == ptr;
-      }
-      return false;
-    });
-    if (block != list_.end()) {
-      (*block)->is_free_ = true;
-      auto *ptr = reinterpret_cast<T *>((*block)->data_);
+        });
+    if (block_it != list_.end()) {
+      (*block_it)->is_free_ = true;
     }
   }
 
@@ -84,3 +85,4 @@ private:
   std::list<std::unique_ptr<Block>> list_{};
   std::size_t offset_{};
 };
+} // namespace Allocator
