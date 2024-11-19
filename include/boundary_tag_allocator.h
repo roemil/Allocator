@@ -2,26 +2,30 @@
 
 #include <cassert>
 #include <cstddef>
-#include <exception>
-#include <iostream>
 #include <memory>
 #include <utility>
 
+namespace Allocator {
+namespace detail {
+struct Block {
+  std::size_t size_{};
+  bool is_free_{true};
+  Block *next = nullptr;
+  Block *prev = nullptr;
+};
+
+} // namespace detail
+
+void coalesce_once(detail::Block *p);
+
 template <typename T> class BoundaryTagAllocator {
-private:
-  struct Block {
-    std::size_t size_{};
-    bool is_free_{true};
-    Block *next = nullptr;
-    Block *prev = nullptr;
-  };
 
 public:
   constexpr BoundaryTagAllocator() = default;
   constexpr explicit BoundaryTagAllocator(std::size_t size)
       : total_size_(size) {
     ptr_ = std::make_unique<std::byte[]>(size);
-    available_memory = reinterpret_cast<Block *>(ptr_.get());
+    available_memory = reinterpret_cast<detail::Block *>(ptr_.get());
     available_memory->size_ = total_size_;
     available_memory->is_free_ = true;
   }
@@ -29,7 +33,7 @@ public:
   constexpr std::size_t max_size() const { return total_size_; }
   constexpr std::size_t count_occupied_memory() const {
     std::size_t free_memory = 0;
-    Block *current = available_memory;
+    detail::Block *current = available_memory;
     while (current) {
       free_memory += current->size_;
       current = current->next;
@@ -46,15 +50,16 @@ public:
       return nullptr;
     }
 
-    std::size_t aligned_size = align_size<T, Block>(n + sizeof(Block));
+    std::size_t aligned_size =
+        align_size<T, detail::Block>(n + sizeof(detail::Block));
 
-    Block *current = available_memory;
+    detail::Block *current = available_memory;
     while (current) {
       if (current->is_free_ && current->size_ > aligned_size) {
         // Check if chunk is large enough to split
-        if (current->size_ > aligned_size + sizeof(Block)) {
-          Block *new_block =
-              reinterpret_cast<Block *>(reinterpret_cast<Block *>(
+        if (current->size_ > aligned_size + sizeof(detail::Block)) {
+          detail::Block *new_block = reinterpret_cast<detail::Block *>(
+              reinterpret_cast<detail::Block *>(
                   reinterpret_cast<std::byte *>(available_memory) +
                   aligned_size));
           new_block->next = current->next;
@@ -79,22 +84,23 @@ public:
     if (!ptr) {
       return;
     }
-    Block *block = reinterpret_cast<Block *>(ptr) - 1;
+    detail::Block *block = reinterpret_cast<detail::Block *>(ptr) - 1;
     if (!block) {
       return;
     }
     block->is_free_ = true;
-    Block *current = available_memory;
+    detail::Block *current = available_memory;
     block->next = current;
     current->prev = block;
 
-    if (block->next) {
-      block->size_ += block->next->size_;
-      block->next = block->next->next;
-      if (block->next) {
-        block->next->prev = block;
-      }
-    }
+    // if (block->next) {
+    //   block->size_ += block->next->size_;
+    //   block->next = block->next->next;
+    //   if (block->next) {
+    //     block->next->prev = block;
+    //   }
+    // }
+    coalesce_once(block);
 
     available_memory = block;
   }
@@ -113,5 +119,6 @@ private:
   }
   std::size_t total_size_{};
   std::unique_ptr<std::byte[]> ptr_ = nullptr;
-  Block *available_memory = nullptr;
+  detail::Block *available_memory = nullptr;
 };
+} // namespace Allocator
