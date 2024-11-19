@@ -90,3 +90,37 @@ TEST(PolicyFirstFit, FirstOccupiedSecondFree) {
                                                                        5);
     EXPECT_EQ(available_block, reinterpret_cast<int *>(block.get() + 1));
 }
+
+TEST(PolicyBestFit, Basic) {
+    auto head = std::make_unique<Allocator::detail::Block>();
+    head->size_ = 50;
+
+    auto block = std::make_unique<Allocator::detail::Block>();
+    block->size_ = 40;
+    block->prev = head.get();
+
+    head->next = block.get();
+
+    auto *raw_head = head.get();
+    auto *available_block =
+        Allocator::PlacementPolicy::BestFit::get_available_block<int>(raw_head,
+                                                                      30);
+    EXPECT_EQ(available_block, reinterpret_cast<int *>(block.get() + 1));
+}
+
+TEST(PolicyBestFit, OnlyOneLargeEnough) {
+    auto head = std::make_unique<Allocator::detail::Block>();
+    head->size_ = 50;
+
+    auto block = std::make_unique<Allocator::detail::Block>();
+    block->size_ = 40;
+    block->prev = head.get();
+
+    head->next = block.get();
+
+    auto *raw_head = head.get();
+    auto *available_block =
+        Allocator::PlacementPolicy::BestFit::get_available_block<int>(raw_head,
+                                                                      41);
+    EXPECT_EQ(available_block, reinterpret_cast<int *>(head.get() + 1));
+}
