@@ -12,7 +12,6 @@ template <typename T> class ArenaAllocator {
     }
 
     constexpr std::size_t max_size() const { return size_; }
-
     constexpr T *allocate(std::size_t n) {
         if (n == 0) {
             return nullptr;
