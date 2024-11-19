@@ -14,6 +14,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 include_directories(include)
 
+enable_testing()
+
 add_executable(
     block_allocator_suite
     src/block_allocator.cpp
@@ -23,22 +25,36 @@ target_link_libraries(
     block_allocator_suite gtest_main
 )
 
+target_compile_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
+target_link_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
+
 add_executable(
     boundary_tag_allocator_suite
     src/boundary_tag_allocator.cpp
     test/boundary_tag_allocator_suite.cpp
 )
+
 target_link_libraries(
   boundary_tag_allocator_suite gtest_main
 )
 
+target_compile_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
+target_link_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
 
+add_executable(
+    placement_policy_suite
+    src/placement_policy.cpp
+    test/placement_policy_suite.cpp
+)
 
- target_compile_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
- target_link_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
- target_compile_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
- target_link_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,undefined)
+target_link_libraries(
+  placement_policy_suite gtest_main
+)
+
+target_compile_options(placement_policy_suite PRIVATE -fsanitize=address,undefined)
+target_link_options(placement_policy_suite PRIVATE -fsanitize=address,undefined)
 
 include(GoogleTest)
 gtest_discover_tests(block_allocator_suite)
 gtest_discover_tests(boundary_tag_allocator_suite)
+gtest_discover_tests(placement_policy_suite)

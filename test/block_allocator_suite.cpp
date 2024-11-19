@@ -2,21 +2,21 @@
 
 #include <gtest/gtest.h>
 
-TEST(BlockAllocator, Constructor){
+TEST(BlockAllocator, Constructor) {
     constexpr int size = 10;
-    BlockAllocator<int> alloc{size};
+    Allocator::BlockAllocator<int> alloc{size};
     EXPECT_EQ(alloc.get_max_storage(), size * sizeof(int));
 }
 
-TEST(BlockAllocator, Alloc){
-    BlockAllocator<int> alloc{10};
+TEST(BlockAllocator, Alloc) {
+    Allocator::BlockAllocator<int> alloc{10};
     const auto my_int = alloc.allocate(5);
     EXPECT_TRUE(my_int);
     EXPECT_EQ(alloc.count_occupied_blocks(), 1);
 }
 
-TEST(BlockAllocator, Free){
-    BlockAllocator<int> alloc{10};
+TEST(BlockAllocator, Free) {
+    Allocator::BlockAllocator<int> alloc{10};
     const auto my_int = alloc.allocate(5);
     EXPECT_TRUE(my_int);
     EXPECT_EQ(alloc.count_occupied_blocks(), 1);
@@ -25,11 +25,10 @@ TEST(BlockAllocator, Free){
     EXPECT_EQ(alloc.count_occupied_blocks(), 0);
 }
 
-
-TEST(BlockAllocator, FillAlloc){
+TEST(BlockAllocator, FillAlloc) {
     constexpr std::size_t size = 10;
-    BlockAllocator<int> alloc{size};
-    for(int i = 0; i < size; ++i){
+    Allocator::BlockAllocator<int> alloc{size};
+    for (int i = 0; i < size; ++i) {
         const auto my_int = alloc.allocate(i);
         EXPECT_TRUE(my_int);
     }

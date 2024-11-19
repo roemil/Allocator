@@ -1,10 +1,11 @@
-#include "PlacementPolicy.h"
 #include "boundary_tag_allocator.h"
+#include "placement_policy.h"
 
 #include <gtest/gtest.h>
+#include <memory>
 #include <vector>
 
-TEST(BlockAllocator, Constructor) {
+TEST(BoundaryTagAllocator, Constructor) {
     constexpr std::size_t size = 1024;
     Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
         alloc{size};
@@ -17,7 +18,8 @@ constexpr T *allocate_helper(AllocT &alloc, std::size_t n) {
     EXPECT_TRUE(p);
     return p;
 }
-TEST(BlockAllocator, Alloc) {
+
+TEST(BoundaryTagAllocator, Alloc) {
     constexpr std::size_t size = 1024;
     Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
         alloc{size};
@@ -27,7 +29,7 @@ TEST(BlockAllocator, Alloc) {
     EXPECT_EQ(*my_int, 5);
 }
 
-TEST(BlockAllocator, Free) {
+TEST(BoundaryTagAllocator, Free) {
     Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
         alloc{1024};
     auto my_int = allocate_helper<decltype(alloc), int>(alloc, sizeof(int));
@@ -37,7 +39,7 @@ TEST(BlockAllocator, Free) {
     EXPECT_EQ(alloc.count_occupied_memory(), 0);
 }
 
-TEST(BlockAllocator, AllocDeallocMany) {
+TEST(BoundaryTagAllocator, AllocDeallocMany) {
     constexpr std::size_t size = 1024;
     Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
         alloc{size};
@@ -61,7 +63,7 @@ struct S {
     constexpr ~S() { is_initialized = false; }
 };
 
-TEST(BlockAllocator, Construct) {
+TEST(BoundaryTagAllocator, Construct) {
     constexpr std::size_t size = 1024;
     Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
         alloc{size};
@@ -76,7 +78,7 @@ TEST(BlockAllocator, Construct) {
     EXPECT_EQ(*my_int, expected_value);
 }
 
-TEST(BlockAllocator, Destroy) {
+TEST(BoundaryTagAllocator, Destroy) {
     constexpr std::size_t size = 1024;
     Allocator::BoundaryTagAllocator<S, Allocator::PlacementPolicy::FirstFit>
         alloc{size};
@@ -103,20 +105,4 @@ TEST(Coalesce, Once) {
 
     EXPECT_EQ(head->size_, 60);
     EXPECT_FALSE(head->next);
-}
-
-TEST(PolicyFirstFit, Basic) {
-    auto head = std::make_unique<Allocator::detail::Block>();
-    head->size_ = 10;
-
-    auto block = std::make_unique<Allocator::detail::Block>();
-    block->size_ = 50;
-    block->prev = head.get();
-
-    head->next = block.get();
-
-    auto *raw_head = head.get();
-    auto *available_block =
-        Allocator::PlacementPolicy::FirstFit::get_available_block<int>(raw_head,
-                                                                       30);
 }
