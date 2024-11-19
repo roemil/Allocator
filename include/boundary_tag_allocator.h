@@ -18,7 +18,7 @@ struct Block {
 
 void coalesce_once(detail::Block *p);
 
-template <typename T> class BoundaryTagAllocator {
+template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
 
 public:
   constexpr BoundaryTagAllocator() = default;
@@ -53,27 +53,8 @@ public:
     std::size_t aligned_size =
         align_size<T, detail::Block>(n + sizeof(detail::Block));
 
-    detail::Block *current = available_memory;
-    while (current) {
-      if (current->is_free_ && current->size_ > aligned_size) {
-        // Check if chunk is large enough to split
-        if (current->size_ > aligned_size + sizeof(detail::Block)) {
-          detail::Block *new_block = reinterpret_cast<detail::Block *>(
-              reinterpret_cast<detail::Block *>(
-                  reinterpret_cast<std::byte *>(available_memory) +
-                  aligned_size));
-          new_block->next = current->next;
-          new_block->is_free_ = true;
-          new_block->size_ = current->size_ - aligned_size;
-          available_memory = new_block;
-          current->size_ = aligned_size;
-        }
-        current->is_free_ = false;
-        return reinterpret_cast<T *>(current + 1);
-      }
-      current = current->next;
-    }
-    return nullptr;
+    return PlacementPolicyT::template get_available_block<T>(available_memory,
+                                                             aligned_size);
   }
 
   template <typename... ArgsT> constexpr void construct(T *p, ArgsT &&...args) {
@@ -93,13 +74,6 @@ public:
     block->next = current;
     current->prev = block;
 
-    // if (block->next) {
-    //   block->size_ += block->next->size_;
-    //   block->next = block->next->next;
-    //   if (block->next) {
-    //     block->next->prev = block;
-    //   }
-    // }
     coalesce_once(block);
 
     available_memory = block;

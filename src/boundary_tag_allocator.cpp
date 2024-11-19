@@ -14,4 +14,5 @@ void coalesce_once(detail::Block *p) {
     p->next->prev = p;
   }
 }
+
 } // namespace Allocator
