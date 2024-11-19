@@ -51,7 +51,20 @@ target_link_libraries(
 target_compile_options(placement_policy_suite PRIVATE -fsanitize=address,undefined)
 target_link_options(placement_policy_suite PRIVATE -fsanitize=address,undefined)
 
+add_executable(
+    arena_allocator_suite
+    test/arena_allocator_suite.cpp
+)
+
+target_link_libraries(
+  arena_allocator_suite gtest_main
+)
+
+target_compile_options(arena_allocator_suite PRIVATE -fsanitize=address,undefined)
+target_link_options(arena_allocator_suite PRIVATE -fsanitize=address,undefined)
+
 include(GoogleTest)
 gtest_discover_tests(block_allocator_suite)
 gtest_discover_tests(boundary_tag_allocator_suite)
 gtest_discover_tests(placement_policy_suite)
+gtest_discover_tests(arena_allocator_suite)
