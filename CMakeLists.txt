@@ -18,7 +18,6 @@ enable_testing()
 
 add_executable(
     block_allocator_suite
-    src/block_allocator.cpp
     test/block_allocator_suite.cpp
 )
 target_link_libraries(
@@ -30,7 +29,6 @@ target_link_options(block_allocator_suite PRIVATE -fsanitize=address,undefined)
 
 add_executable(
     boundary_tag_allocator_suite
-    src/boundary_tag_allocator.cpp
     test/boundary_tag_allocator_suite.cpp
 )
 
@@ -43,7 +41,6 @@ target_link_options(boundary_tag_allocator_suite PRIVATE -fsanitize=address,unde
 
 add_executable(
     placement_policy_suite
-    src/placement_policy.cpp
     test/placement_policy_suite.cpp
 )
 
