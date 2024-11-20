@@ -30,10 +30,10 @@ void coalesce_once(detail::Block *p) {
     }
 }
 
-detail::Block* split_block_if_possible(detail::Block*& pool, detail::Block* candidate, std::size_t size){
+std::pair<detail::Block*,detail::Block*> split_block_if_possible(detail::Block* candidate, std::size_t size){
         // Check if chunk is large enough to split
     if(candidate->size_ <= size + sizeof(detail::Block)){
-        return candidate;
+        return {candidate, nullptr};
     }
     auto *new_block =
         reinterpret_cast<detail::Block *>(
@@ -42,10 +42,10 @@ detail::Block* split_block_if_possible(detail::Block*& pool, detail::Block* cand
     new_block->next = candidate->next;
     new_block->is_free_ = true;
     new_block->size_ = candidate->size_ - size;
-    pool = new_block;
+
     candidate->size_ = size;
 
-    return candidate;
+    return {candidate, new_block};
 }
 
 template <typename U, typename V> static size_t align_size(size_t size) {
@@ -90,8 +90,11 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
 
         auto* block = PlacementPolicyT::get_available_block(
             available_memory, aligned_size);
-        block = split_block_if_possible(available_memory, block, aligned_size);
-        return reinterpret_cast<T*>(block+1);
+        auto [new_block, new_pool] = split_block_if_possible(block, aligned_size);
+        if(new_pool){
+            available_memory = new_pool;
+        }
+        return reinterpret_cast<T*>(new_block+1);
     }
 
     template <typename... ArgsT>
