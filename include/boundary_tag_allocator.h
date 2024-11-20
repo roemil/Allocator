@@ -42,6 +42,9 @@ std::pair<detail::Block*,detail::Block*> split_block_if_possible(detail::Block* 
     new_block->next = candidate->next;
     new_block->is_free_ = true;
     new_block->size_ = candidate->size_ - size;
+    if(new_block->next){
+        new_block->next->prev = new_block;
+    }
 
     candidate->size_ = size;
 
