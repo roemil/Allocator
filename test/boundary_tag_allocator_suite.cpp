@@ -106,3 +106,16 @@ TEST(Coalesce, Once) {
     EXPECT_EQ(head->size_, 60);
     EXPECT_FALSE(head->next);
 }
+
+TEST(SplitBlock, SplitBlock){
+    std::size_t aligned_size =
+            Allocator::align_size<int, Allocator::detail::Block>(50 + sizeof(Allocator::detail::Block));
+    auto memory = std::make_unique<std::byte[]>(aligned_size*3);
+    auto pool = reinterpret_cast<Allocator::detail::Block*>(memory.get());
+    pool->size_ = aligned_size*3;
+    auto new_block = Allocator::split_block_if_possible(pool, pool, aligned_size);
+
+    EXPECT_EQ(pool->size_, aligned_size*2);
+    EXPECT_TRUE(new_block);
+    EXPECT_EQ(new_block->size_, aligned_size);
+}
