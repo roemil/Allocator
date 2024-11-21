@@ -20,13 +20,19 @@ void coalesce_once(detail::Block *p) {
     if (!p) {
         return;
     }
-    if (!p->next) {
-        return;
+    if (p->next && p->next->is_free_) {
+        p->size_ += p->next->size_;
+        p->next = p->next->next;
+        if (p->next) {
+            p->next->prev = p;
+        }
     }
-    p->size_ += p->next->size_;
-    p->next = p->next->next;
-    if (p->next) {
-        p->next->prev = p;
+    if(p->prev && p->prev->is_free_){
+        p->prev->next = p->next;
+        p->prev->size_ += p->size_;
+        if (p->next) {
+           p->next->prev = p->prev;
+        }
     }
 }
 

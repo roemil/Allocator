@@ -91,20 +91,76 @@ TEST(BoundaryTagAllocator, Destroy) {
     EXPECT_FALSE(p->is_initialized);
 }
 
-TEST(Coalesce, Once) {
-    auto head = std::make_unique<Allocator::detail::Block>();
-    head->size_ = 10;
+TEST(Coalesce, Right) {
+    auto middle = std::make_unique<Allocator::detail::Block>();
+    middle->size_ = 10;
 
-    auto block = std::make_unique<Allocator::detail::Block>();
-    block->size_ = 50;
-    block->prev = head.get();
+    auto left = std::make_unique<Allocator::detail::Block>();
+    left->size_ = 50;
+    left->next = middle.get();
+    left->is_free_ = false;
 
-    head->next = block.get();
+    middle->prev = left.get();
 
-    Allocator::coalesce_once(head.get());
+    auto right = std::make_unique<Allocator::detail::Block>();
+    right->size_ = 90;
+    middle->next = right.get();
+    right->prev = middle.get();
 
-    EXPECT_EQ(head->size_, 60);
-    EXPECT_FALSE(head->next);
+    Allocator::coalesce_once(middle.get());
+
+    EXPECT_EQ(middle->size_, 100);
+    EXPECT_EQ(left->next, middle.get());
+    EXPECT_FALSE(middle->next);
+}
+
+TEST(Coalesce, Left) {
+    auto middle = std::make_unique<Allocator::detail::Block>();
+    middle->size_ = 10;
+
+    auto left = std::make_unique<Allocator::detail::Block>();
+    left->size_ = 50;
+    left->next = middle.get();
+
+    middle->prev = left.get();
+
+    auto right = std::make_unique<Allocator::detail::Block>();
+    right->size_ = 90;
+    right->is_free_ = false;
+    middle->next = right.get();
+    right->prev = middle.get();
+
+    Allocator::coalesce_once(middle.get());
+
+    EXPECT_EQ(left->size_, 60);
+    EXPECT_EQ(left->next, right.get());
+}
+
+TEST(Coalesce, LeftAndRight) {
+    auto middle = std::make_unique<Allocator::detail::Block>();
+    middle->size_ = 10;
+
+    auto left = std::make_unique<Allocator::detail::Block>();
+    left->size_ = 50;
+    left->next = middle.get();
+
+    middle->prev = left.get();
+
+    auto right = std::make_unique<Allocator::detail::Block>();
+    right->size_ = 90;
+    middle->next = right.get();
+    right->prev = middle.get();
+
+    auto end = std::make_unique<Allocator::detail::Block>();
+    end->size_ = 100;
+    right->next = end.get();
+    right->prev = middle.get();
+
+    Allocator::coalesce_once(middle.get());
+
+    EXPECT_EQ(left->size_, 150);
+    EXPECT_EQ(left->next, end.get());
+    EXPECT_FALSE(left->prev);
 }
 
 TEST(SplitBlock, SplitBlock){
