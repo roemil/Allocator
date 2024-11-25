@@ -16,7 +16,7 @@ struct Block {
 
 } // namespace detail
 
-void coalesce_once(detail::Block *p) {
+inline void coalesce_once(detail::Block *p) {
     if (!p) {
         return;
     }
@@ -36,7 +36,7 @@ void coalesce_once(detail::Block *p) {
     }
 }
 
-std::pair<detail::Block *, detail::Block *>
+inline std::pair<detail::Block *, detail::Block *>
 split_block_if_possible(detail::Block *candidate, std::size_t size) {
     // Check if chunk is large enough to split
     if (candidate->size_ <= size + sizeof(detail::Block)) {

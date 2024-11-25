@@ -10,7 +10,7 @@ struct FirstFit {
                                               std::size_t size);
 };
 
-detail::Block *
+inline detail::Block *
 PlacementPolicy::FirstFit::get_available_block(detail::Block *&head,
                                                std::size_t size) {
     auto *current = head;
@@ -29,7 +29,7 @@ struct BestFit {
                                               std::size_t size);
 };
 
-detail::Block *
+inline detail::Block *
 PlacementPolicy::BestFit::get_available_block(detail::Block *&head,
                                               std::size_t size) {
     if (!head) {

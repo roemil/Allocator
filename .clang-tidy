@@ -1,0 +1,5 @@
+Checks:          'clang-diagnostic-*,clang-analyzer-*, cppcoreguidelines-*, modernize-*, misc-include-cleaner, readability-identifier-naming, -modernize-use-trailing-return-type, -modernize-use-nodiscard, -cppcoreguidelines-avoid-magic-numbers, -cppcoreguidelines-pro-type-union-access, -cppcoreguidelines-pro-type-vararg'
+HeaderFilterRegex: "(.hpp$|.h$)"
+CheckOptions:
+  - key: cppcoreguidelines-pro-type-reinterpret-cast
+  - value: false
