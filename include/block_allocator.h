@@ -13,7 +13,7 @@ template <typename T> class BlockAllocator {
   private:
     struct Block {
         constexpr Block() = default;
-        alignas(T) std::byte data_[sizeof(T)]{};
+        alignas(T) std::array<std::byte, sizeof(T)> data_{};
         bool is_free_{true};
     };
 
@@ -37,7 +37,7 @@ template <typename T> class BlockAllocator {
             return nullptr;
         }
         block->is_free_ = false;
-        return reinterpret_cast<T *>(block->data_);
+        return reinterpret_cast<T *>(block->data_.data());
     }
 
     constexpr void deallocate(T *ptr) {
@@ -47,7 +47,8 @@ template <typename T> class BlockAllocator {
         auto block_it =
             std::find_if(list_.begin(), list_.end(), [ptr](auto &block) {
                 if (block) {
-                    auto *block_ptr = reinterpret_cast<T *>(block->data_);
+                    auto *block_ptr =
+                        reinterpret_cast<T *>(block->data_.data());
                     if (!block_ptr) {
                         return false;
                     }
