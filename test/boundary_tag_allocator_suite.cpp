@@ -163,68 +163,78 @@ TEST(Coalesce, LeftAndRight) {
     EXPECT_FALSE(left->prev);
 }
 
-TEST(SplitBlock, SplitBlock){
+TEST(SplitBlock, SplitBlock) {
     std::size_t aligned_size =
-            Allocator::align_size<int, Allocator::detail::Block>(50 + sizeof(Allocator::detail::Block));
-    auto memory = std::make_unique<std::byte[]>(aligned_size*3);
-    auto pool = reinterpret_cast<Allocator::detail::Block*>(memory.get());
-    pool->size_ = aligned_size*3;
-    auto [new_block, new_pool] = Allocator::split_block_if_possible(pool, aligned_size);
+        Allocator::align_size<int, Allocator::detail::Block>(
+            50 + sizeof(Allocator::detail::Block));
+    auto memory = std::make_unique<std::byte[]>(aligned_size * 3);
+    auto pool = reinterpret_cast<Allocator::detail::Block *>(memory.get());
+    pool->size_ = aligned_size * 3;
+    auto [new_block, new_pool] =
+        Allocator::split_block_if_possible(pool, aligned_size);
 
-    EXPECT_EQ(new_pool->size_, aligned_size*2);
+    EXPECT_EQ(new_pool->size_, aligned_size * 2);
     EXPECT_TRUE(new_block);
     EXPECT_EQ(new_block->size_, aligned_size);
 }
 
-TEST(SplitBlock, NoSplit){
+TEST(SplitBlock, NoSplit) {
     std::size_t aligned_size =
-            Allocator::align_size<int, Allocator::detail::Block>(50 + sizeof(Allocator::detail::Block));
-    auto memory = std::make_unique<std::byte[]>(aligned_size+aligned_size*0.1);
-    auto pool = reinterpret_cast<Allocator::detail::Block*>(memory.get());
-    pool->size_ = aligned_size+aligned_size*0.1;
-    auto [new_block, new_pool] = Allocator::split_block_if_possible(pool, aligned_size);
+        Allocator::align_size<int, Allocator::detail::Block>(
+            50 + sizeof(Allocator::detail::Block));
+    auto memory =
+        std::make_unique<std::byte[]>(aligned_size + aligned_size * 0.1);
+    auto pool = reinterpret_cast<Allocator::detail::Block *>(memory.get());
+    pool->size_ = aligned_size + aligned_size * 0.1;
+    auto [new_block, new_pool] =
+        Allocator::split_block_if_possible(pool, aligned_size);
 
     EXPECT_FALSE(new_pool);
     EXPECT_TRUE(new_block);
     EXPECT_EQ(new_block->size_, pool->size_);
 }
 
-TEST(SplitBlock, SplitPoolTwice){
+TEST(SplitBlock, SplitPoolTwice) {
     const std::size_t aligned_size =
-            Allocator::align_size<int, Allocator::detail::Block>(50 + sizeof(Allocator::detail::Block));
+        Allocator::align_size<int, Allocator::detail::Block>(
+            50 + sizeof(Allocator::detail::Block));
     const std::size_t pool_size = aligned_size * 5;
     auto memory = std::make_unique<std::byte[]>(pool_size);
-    auto pool = reinterpret_cast<Allocator::detail::Block*>(memory.get());
+    auto pool = reinterpret_cast<Allocator::detail::Block *>(memory.get());
     pool->size_ = pool_size;
     {
-        auto [new_block, new_pool] = Allocator::split_block_if_possible(pool, aligned_size);
+        auto [new_block, new_pool] =
+            Allocator::split_block_if_possible(pool, aligned_size);
 
-        EXPECT_EQ(new_pool->size_, pool_size-aligned_size);
+        EXPECT_EQ(new_pool->size_, pool_size - aligned_size);
         EXPECT_TRUE(new_block);
         EXPECT_EQ(new_block->size_, aligned_size);
         pool = new_pool;
     }
     {
-        auto [new_block, new_pool] = Allocator::split_block_if_possible(pool, aligned_size);
+        auto [new_block, new_pool] =
+            Allocator::split_block_if_possible(pool, aligned_size);
 
-        EXPECT_EQ(new_pool->size_, pool_size-aligned_size*2);
+        EXPECT_EQ(new_pool->size_, pool_size - aligned_size * 2);
         EXPECT_TRUE(new_block);
         EXPECT_EQ(new_block->size_, aligned_size);
         pool = new_pool;
     }
 }
 
-TEST(SplitBlock, SplitBlockTwice){
+TEST(SplitBlock, SplitBlockTwice) {
     const std::size_t aligned_size =
-            Allocator::align_size<int, Allocator::detail::Block>(50 + sizeof(Allocator::detail::Block));
+        Allocator::align_size<int, Allocator::detail::Block>(
+            50 + sizeof(Allocator::detail::Block));
     const std::size_t pool_size = aligned_size * 5;
     auto memory = std::make_unique<std::byte[]>(pool_size);
-    auto pool = reinterpret_cast<Allocator::detail::Block*>(memory.get());
+    auto pool = reinterpret_cast<Allocator::detail::Block *>(memory.get());
     pool->size_ = pool_size;
 
-    auto [new_block, new_pool] = Allocator::split_block_if_possible(pool, aligned_size);
+    auto [new_block, new_pool] =
+        Allocator::split_block_if_possible(pool, aligned_size);
 
-    EXPECT_EQ(new_pool->size_, pool_size-aligned_size);
+    EXPECT_EQ(new_pool->size_, pool_size - aligned_size);
     EXPECT_TRUE(new_block);
     EXPECT_EQ(new_block->size_, aligned_size);
     pool = new_pool;
@@ -233,13 +243,15 @@ TEST(SplitBlock, SplitBlockTwice){
 
     {
         const std::size_t small_aligned_size =
-                Allocator::align_size<int, Allocator::detail::Block>(10 + sizeof(Allocator::detail::Block));
+            Allocator::align_size<int, Allocator::detail::Block>(
+                10 + sizeof(Allocator::detail::Block));
         ASSERT_GT(new_block->size_, small_aligned_size);
         const auto old_block_size = new_block->size_;
-        auto [small_block, new_pool] = Allocator::split_block_if_possible(new_block, small_aligned_size);
+        auto [small_block, new_pool] =
+            Allocator::split_block_if_possible(new_block, small_aligned_size);
 
         EXPECT_TRUE(new_pool);
-        EXPECT_EQ(new_pool->size_, old_block_size-small_aligned_size);
+        EXPECT_EQ(new_pool->size_, old_block_size - small_aligned_size);
         EXPECT_TRUE(small_block);
         EXPECT_EQ(small_block->size_, small_aligned_size);
         EXPECT_TRUE(small_block->next);

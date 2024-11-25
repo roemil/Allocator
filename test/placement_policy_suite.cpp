@@ -14,8 +14,7 @@ TEST(PolicyFirstFit, Basic) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head,
-                                                                       30);
+        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head, 30);
     EXPECT_EQ(available_block, block.get());
 }
 
@@ -31,8 +30,7 @@ TEST(PolicyFirstFit, First) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head,
-                                                                       5);
+        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head, 5);
     EXPECT_EQ(available_block, head.get());
 }
 
@@ -48,8 +46,7 @@ TEST(PolicyFirstFit, NoFit) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head,
-                                                                       60);
+        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head, 60);
     EXPECT_FALSE(available_block);
 }
 
@@ -67,8 +64,7 @@ TEST(PolicyFirstFit, NoFree) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head,
-                                                                       5);
+        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head, 5);
     EXPECT_FALSE(available_block);
 }
 
@@ -86,8 +82,7 @@ TEST(PolicyFirstFit, FirstOccupiedSecondFree) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head,
-                                                                       5);
+        Allocator::PlacementPolicy::FirstFit::get_available_block(raw_head, 5);
     EXPECT_EQ(available_block, block.get());
 }
 
@@ -103,8 +98,7 @@ TEST(PolicyBestFit, Basic) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::BestFit::get_available_block(raw_head,
-                                                                      30);
+        Allocator::PlacementPolicy::BestFit::get_available_block(raw_head, 30);
     EXPECT_EQ(available_block, block.get());
 }
 
@@ -120,7 +114,6 @@ TEST(PolicyBestFit, OnlyOneLargeEnough) {
 
     auto *raw_head = head.get();
     auto *available_block =
-        Allocator::PlacementPolicy::BestFit::get_available_block(raw_head,
-                                                                      41);
+        Allocator::PlacementPolicy::BestFit::get_available_block(raw_head, 41);
     EXPECT_EQ(available_block, head.get());
 }

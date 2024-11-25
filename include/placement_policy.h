@@ -6,12 +6,13 @@
 namespace Allocator::PlacementPolicy {
 
 struct FirstFit {
-    static detail::Block *get_available_block(detail::Block *&head, std::size_t size);
+    static detail::Block *get_available_block(detail::Block *&head,
+                                              std::size_t size);
 };
 
-
-detail::Block *PlacementPolicy::FirstFit::get_available_block(detail::Block *&head,
-                                                  std::size_t size) {
+detail::Block *
+PlacementPolicy::FirstFit::get_available_block(detail::Block *&head,
+                                               std::size_t size) {
     auto *current = head;
     while (current) {
         if (current->is_free_ && current->size_ >= size) {
@@ -24,12 +25,13 @@ detail::Block *PlacementPolicy::FirstFit::get_available_block(detail::Block *&he
 }
 
 struct BestFit {
-    static detail::Block *get_available_block(detail::Block *&head, std::size_t size);
+    static detail::Block *get_available_block(detail::Block *&head,
+                                              std::size_t size);
 };
 
-
-detail::Block *PlacementPolicy::BestFit::get_available_block(detail::Block *&head,
-                                                 std::size_t size) {
+detail::Block *
+PlacementPolicy::BestFit::get_available_block(detail::Block *&head,
+                                              std::size_t size) {
     if (!head) {
         return nullptr;
     }

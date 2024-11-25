@@ -27,28 +27,28 @@ void coalesce_once(detail::Block *p) {
             p->next->prev = p;
         }
     }
-    if(p->prev && p->prev->is_free_){
+    if (p->prev && p->prev->is_free_) {
         p->prev->next = p->next;
         p->prev->size_ += p->size_;
         if (p->next) {
-           p->next->prev = p->prev;
+            p->next->prev = p->prev;
         }
     }
 }
 
-std::pair<detail::Block*,detail::Block*> split_block_if_possible(detail::Block* candidate, std::size_t size){
-        // Check if chunk is large enough to split
-    if(candidate->size_ <= size + sizeof(detail::Block)){
+std::pair<detail::Block *, detail::Block *>
+split_block_if_possible(detail::Block *candidate, std::size_t size) {
+    // Check if chunk is large enough to split
+    if (candidate->size_ <= size + sizeof(detail::Block)) {
         return {candidate, nullptr};
     }
-    auto *new_block =
-        reinterpret_cast<detail::Block *>(
-            reinterpret_cast<std::byte *>(candidate) + size);
+    auto *new_block = reinterpret_cast<detail::Block *>(
+        reinterpret_cast<std::byte *>(candidate) + size);
 
     new_block->next = candidate->next;
     new_block->is_free_ = true;
     new_block->size_ = candidate->size_ - size;
-    if(new_block->next){
+    if (new_block->next) {
         new_block->next->prev = new_block;
     }
 
@@ -97,13 +97,14 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
         std::size_t aligned_size =
             align_size<T, detail::Block>(n + sizeof(detail::Block));
 
-        auto* block = PlacementPolicyT::get_available_block(
-            available_memory, aligned_size);
-        auto [new_block, new_pool] = split_block_if_possible(block, aligned_size);
-        if(new_pool){
+        auto *block = PlacementPolicyT::get_available_block(available_memory,
+                                                            aligned_size);
+        auto [new_block, new_pool] =
+            split_block_if_possible(block, aligned_size);
+        if (new_pool) {
             available_memory = new_pool;
         }
-        return reinterpret_cast<T*>(new_block+1);
+        return reinterpret_cast<T *>(new_block + 1);
     }
 
     template <typename... ArgsT>
