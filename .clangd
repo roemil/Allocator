@@ -1,0 +1,5 @@
+Diagnostics:
+  ClangTidy:
+    Add: cppcoreguidelines-*
+    Remove: cppcoreguidelines-pro-type-reinterpret-cast
+    Add: modernize-*
