@@ -7,7 +7,7 @@ template <typename T> class ArenaAllocator {
   public:
     constexpr ArenaAllocator() = default;
     constexpr ArenaAllocator(std::size_t size) : size_(size) {
-        ptr_ = std::make_unique<RawData[]>(size_);
+        ptr_ = std::make_unique_for_overwrite<RawData[]>(size_);
     }
 
     constexpr std::size_t max_size() const { return size_; }
@@ -36,7 +36,7 @@ template <typename T> class ArenaAllocator {
 
     constexpr void deallocate() {
         ptr_.reset();
-        ptr_ = std::make_unique<RawData[]>(size_);
+        ptr_ = std::make_unique_for_overwrite<RawData[]>(size_);
         offset_ = 0;
     }
 

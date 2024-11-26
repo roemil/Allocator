@@ -21,7 +21,7 @@ template <typename T> class BlockAllocator {
     constexpr explicit BlockAllocator(std::size_t num_blocks)
         : num_blocks_(num_blocks) {
         for (int i = 0; i < num_blocks_; ++i) {
-            list_.emplace_back(std::make_unique<Block>());
+            list_.emplace_back(std::make_unique_for_overwrite<Block>());
         }
     }
 
