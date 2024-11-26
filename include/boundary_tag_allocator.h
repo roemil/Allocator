@@ -62,13 +62,13 @@ template <typename U, typename V> static size_t align_size(size_t size) {
     return (size + alignment - 1) & ~(alignment - 1);
 }
 
-template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
+template <typename T, std::size_t HeapSize, typename PlacementPolicyT>
+class BoundaryTagAllocator {
 
   public:
-    constexpr BoundaryTagAllocator() = default;
-    constexpr explicit BoundaryTagAllocator(std::size_t size)
-        : total_size_(size), ptr_(std::make_unique<RawData[]>(size)),
-          available_memory(reinterpret_cast<detail::Block *>(ptr_.get())) {
+    constexpr explicit BoundaryTagAllocator() : total_size_(HeapSize) {
+
+        available_memory = reinterpret_cast<detail::Block *>(ptr_);
 
         available_memory->size_ = total_size_;
         available_memory->is_free_ = true;
@@ -139,8 +139,7 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
 
   private:
     std::size_t total_size_{};
-    using RawData = std::aligned_storage_t<sizeof(T), alignof(T)>;
-    std::unique_ptr<RawData[]> ptr_ = nullptr;
     detail::Block *available_memory = nullptr;
+    alignas(detail::Block) std::byte ptr_[HeapSize]{};
 };
 } // namespace Allocator

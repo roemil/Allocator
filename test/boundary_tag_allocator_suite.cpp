@@ -7,8 +7,9 @@
 
 TEST(BoundaryTagAllocator, Constructor) {
     constexpr std::size_t size = 1024;
-    Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
-        alloc{size};
+    Allocator::BoundaryTagAllocator<int, size,
+                                    Allocator::PlacementPolicy::FirstFit>
+        alloc{};
     EXPECT_EQ(alloc.max_size(), size);
 }
 
@@ -21,8 +22,9 @@ constexpr T *allocate_helper(AllocT &alloc, std::size_t n) {
 
 TEST(BoundaryTagAllocator, Alloc) {
     constexpr std::size_t size = 1024;
-    Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
-        alloc{size};
+    Allocator::BoundaryTagAllocator<int, size,
+                                    Allocator::PlacementPolicy::FirstFit>
+        alloc{};
     auto my_int = allocate_helper<decltype(alloc), int>(alloc, sizeof(int));
     *my_int = 5;
     EXPECT_EQ(alloc.count_occupied_memory(), 48); // Is this correct?
@@ -30,8 +32,10 @@ TEST(BoundaryTagAllocator, Alloc) {
 }
 
 TEST(BoundaryTagAllocator, Free) {
-    Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
-        alloc{1024};
+    constexpr std::size_t size = 1024;
+    Allocator::BoundaryTagAllocator<int, size,
+                                    Allocator::PlacementPolicy::FirstFit>
+        alloc{};
     auto my_int = allocate_helper<decltype(alloc), int>(alloc, sizeof(int));
     EXPECT_EQ(alloc.count_occupied_memory(), 48);
 
@@ -41,8 +45,9 @@ TEST(BoundaryTagAllocator, Free) {
 
 TEST(BoundaryTagAllocator, AllocDeallocMany) {
     constexpr std::size_t size = 1024;
-    Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
-        alloc{size};
+    Allocator::BoundaryTagAllocator<int, size,
+                                    Allocator::PlacementPolicy::FirstFit>
+        alloc{};
     std::vector<int *> ptr_vec{};
     for (int i = 0; i < 10; ++i) {
         const auto my_int = alloc.allocate(sizeof(int));
@@ -65,11 +70,12 @@ struct S {
 
 TEST(BoundaryTagAllocator, Construct) {
     constexpr std::size_t size = 1024;
-    Allocator::BoundaryTagAllocator<int, Allocator::PlacementPolicy::FirstFit>
-        alloc{size};
+    Allocator::BoundaryTagAllocator<int, size,
+                                    Allocator::PlacementPolicy::FirstFit>
+        alloc{};
     auto my_int =
         allocate_helper<Allocator::BoundaryTagAllocator<
-                            int, Allocator::PlacementPolicy::FirstFit>,
+                            int, size, Allocator::PlacementPolicy::FirstFit>,
                         int>(alloc, sizeof(int));
 
     constexpr int expected_value = 5;
@@ -80,8 +86,9 @@ TEST(BoundaryTagAllocator, Construct) {
 
 TEST(BoundaryTagAllocator, Destroy) {
     constexpr std::size_t size = 1024;
-    Allocator::BoundaryTagAllocator<S, Allocator::PlacementPolicy::FirstFit>
-        alloc{size};
+    Allocator::BoundaryTagAllocator<S, size,
+                                    Allocator::PlacementPolicy::FirstFit>
+        alloc{};
     auto p = allocate_helper<decltype(alloc), S>(alloc, sizeof(S));
     EXPECT_TRUE(p);
     alloc.construct(p);
