@@ -70,15 +70,11 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
 
   public:
     constexpr BoundaryTagAllocator() = default;
-    constexpr ~BoundaryTagAllocator() {
-        if (ptr_) {
-            delete[] ptr_;
-        }
-    }
     constexpr explicit BoundaryTagAllocator(std::size_t size)
-        : total_size_(size), ptr_(new RawData[size]) {
+        : total_size_(size),
+          ptr_(std::make_unique_for_overwrite<RawData[]>(size)) {
 
-        auto *new_memory_region = reinterpret_cast<detail::Block *>(ptr_);
+        auto *new_memory_region = reinterpret_cast<detail::Block *>(ptr_.get());
         available_memory = new (new_memory_region) detail::Block{};
 
         available_memory->size_ = total_size_;
@@ -154,6 +150,6 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
     std::size_t total_size_{};
     detail::Block *available_memory = nullptr;
     using RawData = std::byte;
-    RawData *ptr_ = nullptr;
+    std::unique_ptr<RawData[]> ptr_ = nullptr;
 };
 } // namespace Allocator
