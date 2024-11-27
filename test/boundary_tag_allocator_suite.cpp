@@ -68,10 +68,17 @@ TEST(BoundaryTagAllocator, AllocDeallocMany) {
 }
 
 struct S {
-    bool is_initialized = false;
-    constexpr S() : is_initialized(true) {}
-    constexpr ~S() { is_initialized = false; }
+    static int destructor_count;
+    constexpr S() = default;
+    constexpr S(const S &) = delete;
+    constexpr S(S &&) = delete;
+    constexpr S &operator=(S &&) = delete;
+    constexpr S &operator=(const S &) = delete;
+
+    ~S() { ++destructor_count; }
 };
+
+int S::destructor_count = 0;
 
 TEST(BoundaryTagAllocator, Construct) {
     constexpr std::size_t size = 1024;
@@ -95,10 +102,10 @@ TEST(BoundaryTagAllocator, Destroy) {
     auto p = allocate_helper<decltype(alloc), S>(alloc, sizeof(S));
     EXPECT_TRUE(p);
     alloc.construct(p);
-    EXPECT_TRUE(p->is_initialized);
+    EXPECT_EQ(S::destructor_count, 0);
 
     alloc.destroy(p);
-    EXPECT_FALSE(p->is_initialized);
+    EXPECT_EQ(S::destructor_count, 1);
 }
 
 TEST(Coalesce, Right) {
