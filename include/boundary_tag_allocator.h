@@ -105,8 +105,6 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
         std::size_t aligned_size =
             align_size<T, detail::Block>(n + sizeof(detail::Block));
 
-        assert(aligned_size == 40);
-
         auto *block = PlacementPolicyT::get_available_block(available_memory,
                                                             aligned_size);
         auto [new_block, new_pool] =
