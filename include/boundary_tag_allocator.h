@@ -42,12 +42,16 @@ split_block_if_possible(detail::Block *candidate, std::size_t size) {
     if (candidate->size_ <= size + sizeof(detail::Block)) {
         return {candidate, nullptr};
     }
-    auto *new_block = reinterpret_cast<detail::Block *>(
+
+    auto *new_memory_region = reinterpret_cast<detail::Block *>(
         reinterpret_cast<std::byte *>(candidate) + size);
+
+    auto *new_block = new (new_memory_region) detail::Block{};
 
     new_block->next = candidate->next;
     new_block->is_free_ = true;
     new_block->size_ = candidate->size_ - size;
+
     if (new_block->next) {
         new_block->next->prev = new_block;
     }
@@ -58,17 +62,24 @@ split_block_if_possible(detail::Block *candidate, std::size_t size) {
 }
 
 template <typename U, typename V> static size_t align_size(size_t size) {
-    constexpr size_t alignment = alignof(std::max_align_t);
+    constexpr size_t alignment = std::max(alignof(U), alignof(V));
     return (size + alignment - 1) & ~(alignment - 1);
 }
 
-template <typename T, std::size_t HeapSize, typename PlacementPolicyT>
-class BoundaryTagAllocator {
+template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
 
   public:
-    constexpr explicit BoundaryTagAllocator() : total_size_(HeapSize) {
+    constexpr BoundaryTagAllocator() = default;
+    constexpr ~BoundaryTagAllocator() {
+        if (ptr_) {
+            delete[] ptr_;
+        }
+    }
+    constexpr explicit BoundaryTagAllocator(std::size_t size)
+        : total_size_(size), ptr_(new RawData[size]) {
 
-        available_memory = reinterpret_cast<detail::Block *>(ptr_);
+        auto *new_memory_region = reinterpret_cast<detail::Block *>(ptr_);
+        available_memory = new (new_memory_region) detail::Block{};
 
         available_memory->size_ = total_size_;
         available_memory->is_free_ = true;
@@ -96,6 +107,8 @@ class BoundaryTagAllocator {
 
         std::size_t aligned_size =
             align_size<T, detail::Block>(n + sizeof(detail::Block));
+
+        assert(aligned_size == 40);
 
         auto *block = PlacementPolicyT::get_available_block(available_memory,
                                                             aligned_size);
@@ -140,6 +153,7 @@ class BoundaryTagAllocator {
   private:
     std::size_t total_size_{};
     detail::Block *available_memory = nullptr;
-    alignas(detail::Block) std::byte ptr_[HeapSize]{};
+    using RawData = std::byte;
+    RawData *ptr_ = nullptr;
 };
 } // namespace Allocator
