@@ -70,6 +70,7 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
 
   public:
     constexpr BoundaryTagAllocator() = default;
+    // TODO: Ctor for memory on stack
     constexpr explicit BoundaryTagAllocator(std::size_t size)
         : total_size_(size),
           ptr_(std::make_unique_for_overwrite<RawData[]>(size)) {
