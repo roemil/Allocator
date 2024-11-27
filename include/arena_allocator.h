@@ -6,7 +6,7 @@ namespace Allocator {
 template <typename T> class ArenaAllocator {
   public:
     constexpr ArenaAllocator() = default;
-    constexpr ArenaAllocator(std::size_t size) : size_(size) {
+    constexpr ArenaAllocator(std::size_t size) : size_(size), space_(size_) {
         ptr_ = std::make_unique_for_overwrite<RawData[]>(size_);
     }
 
@@ -15,21 +15,25 @@ template <typename T> class ArenaAllocator {
         if (n == 0) {
             return nullptr;
         }
+        if (space_ < n) {
+            return nullptr;
+        }
         if (n + offset_ > size_) {
             return nullptr;
         }
         if (n < sizeof(T)) {
             return nullptr;
         }
-        auto space = size_ - offset_;
+
         auto *beg = ptr_.get() + offset_;
+        auto old_space = space_;
         T *ptr = (T *)std::align(alignof(T), n, reinterpret_cast<void *&>(beg),
-                                 space);
-        auto alignment = size_ - offset_ - space;
+                                 space_);
         if (!ptr) {
             return nullptr;
         }
-        offset_ += sizeof(T) + alignment;
+        space_ -= sizeof(T);
+        offset_ += old_space - space_;
 
         return ptr;
     }
@@ -38,6 +42,7 @@ template <typename T> class ArenaAllocator {
         ptr_.reset();
         ptr_ = std::make_unique_for_overwrite<RawData[]>(size_);
         offset_ = 0;
+        space_ = size_;
     }
 
   private:
@@ -45,5 +50,6 @@ template <typename T> class ArenaAllocator {
     std::unique_ptr<RawData[]> ptr_ = nullptr;
     std::ptrdiff_t offset_{};
     std::size_t size_{};
+    std::size_t space_{};
 };
 } // namespace Allocator
