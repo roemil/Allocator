@@ -6,12 +6,12 @@
 namespace Allocator::PlacementPolicy {
 
 struct FirstFit {
-    static detail::Block *get_available_block(detail::Block *&head,
+    static detail::Block *get_available_block(detail::Block *head,
                                               std::size_t size);
 };
 
 inline detail::Block *
-PlacementPolicy::FirstFit::get_available_block(detail::Block *&head,
+PlacementPolicy::FirstFit::get_available_block(detail::Block *head,
                                                std::size_t size) {
     auto *current = head;
     while (current) {
@@ -25,12 +25,12 @@ PlacementPolicy::FirstFit::get_available_block(detail::Block *&head,
 }
 
 struct BestFit {
-    static detail::Block *get_available_block(detail::Block *&head,
+    static detail::Block *get_available_block(detail::Block *head,
                                               std::size_t size);
 };
 
 inline detail::Block *
-PlacementPolicy::BestFit::get_available_block(detail::Block *&head,
+PlacementPolicy::BestFit::get_available_block(detail::Block *head,
                                               std::size_t size) {
     if (!head) {
         return nullptr;
