@@ -1,4 +1,6 @@
 ## Custom allocators
+A header-only lib for custom allocators.
+
 ### Type of allocators
 * Arena Allocator
 * Block Allocator
