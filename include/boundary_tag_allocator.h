@@ -44,7 +44,7 @@ split_block_if_possible(detail::Block *candidate, std::size_t size) {
     }
 
     auto *new_memory_region = reinterpret_cast<detail::Block *>(
-        reinterpret_cast<std::byte *>(candidate) + size);
+        reinterpret_cast<std::uintptr_t>(candidate) + size);
 
     auto *new_block = new (new_memory_region) detail::Block{};
 
@@ -112,7 +112,9 @@ template <typename T, typename PlacementPolicyT> class BoundaryTagAllocator {
         if (new_pool) {
             available_memory = new_pool;
         }
-        return reinterpret_cast<T *>(new_block + 1);
+        return reinterpret_cast<T *>(
+            reinterpret_cast<std::uintptr_t>(new_block) +
+            sizeof(detail::Block));
     }
 
     template <typename... ArgsT>
