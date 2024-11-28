@@ -29,8 +29,10 @@ template <typename T> class BlockAllocator {
         return num_blocks_ * sizeof(T);
     }
 
-    constexpr T *allocate(T &val) { return allocate(std::forward<T>(val)); }
-    constexpr T *allocate(T &&val) {
+    constexpr T *allocate(std::size_t n) {
+        if (n != sizeof(T)) {
+            return nullptr;
+        }
         auto *block = find_free_block();
         if (!block) {
             std::cout << "Failed to find free block\n";
